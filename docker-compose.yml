@@ -1,0 +1,172 @@
+# only nginx mysql
+# docker compose down 
+# .env > COMPOSE_FILE=docker-compose-image.yml
+# .env > COMPOSE_PROJECT_NAME=laradock-image-build
+# xóa image và container cũ:
+  # xóa các image dominhsu/laradock-image-[php-fpm][workspace][nginx][mysql] để docker download image từ docker hub về
+# docker compose up -d nginx mysql -f docker-compose-image.yml --build
+networks:
+  frontend:
+    driver: ${NETWORKS_DRIVER}
+  backend:
+    driver: ${NETWORKS_DRIVER}
+volumes:
+  mysql:
+    driver: ${VOLUMES_DRIVER}
+  percona:
+    driver: ${VOLUMES_DRIVER}
+  mssql:
+    driver: ${VOLUMES_DRIVER}
+  postgres:
+    driver: ${VOLUMES_DRIVER}
+  memcached:
+    driver: ${VOLUMES_DRIVER}
+  redis:
+    driver: ${VOLUMES_DRIVER}
+  neo4j:
+    driver: ${VOLUMES_DRIVER}
+  mariadb:
+    driver: ${VOLUMES_DRIVER}
+  mongo:
+    driver: ${VOLUMES_DRIVER}
+  minio:
+    driver: ${VOLUMES_DRIVER}
+  rethinkdb:
+    driver: ${VOLUMES_DRIVER}
+  phpmyadmin:
+    driver: ${VOLUMES_DRIVER}
+  adminer:
+    driver: ${VOLUMES_DRIVER}
+  aerospike:
+    driver: ${VOLUMES_DRIVER}
+  caddy:
+    driver: ${VOLUMES_DRIVER}
+  meilisearch:
+    driver: ${VOLUMES_DRIVER}
+  elasticsearch:
+    driver: ${VOLUMES_DRIVER}
+  mosquitto:
+    driver: ${VOLUMES_DRIVER}
+  confluence:
+    driver: ${VOLUMES_DRIVER}
+  sonarqube:
+    driver: ${VOLUMES_DRIVER}
+  cassandra:
+    driver: ${VOLUMES_DRIVER}
+  graylog:
+    driver: ${VOLUMES_DRIVER}
+  docker-in-docker:
+    driver: ${VOLUMES_DRIVER}
+  react:
+    driver: ${VOLUMES_DRIVER}
+
+services:
+
+### Workspace Utilities ##################################
+    # workspace:
+    #   restart: always
+    #   image: dominhsu/laradock-image-workspace # thay bằng image workspace chứa code mà ko dùng volume ${APP_CODE_PATH_HOST}, comment all đoạn volumes: ${APP_CODE_PATH_HOST}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
+    #   volumes:
+    #     - ${APP_CODE_PATH_HOST}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
+    #     - docker-in-docker:/certs/client
+    #     - ./php-worker/supervisord.d:/etc/supervisord.d
+    #   extra_hosts:
+    #     - "dockerhost:${DOCKER_HOST_IP}"
+    #   ports:
+    #     - "${WORKSPACE_SSH_PORT}:22"
+    #     - "${WORKSPACE_BROWSERSYNC_HOST_PORT}:3000"
+    #     - "${WORKSPACE_BROWSERSYNC_UI_HOST_PORT}:3001"
+    #     - "${WORKSPACE_VUE_CLI_SERVE_HOST_PORT}:8080"
+    #     - "${WORKSPACE_VUE_CLI_UI_HOST_PORT}:8000"
+    #     - "${WORKSPACE_ANGULAR_CLI_SERVE_HOST_PORT}:4200"
+    #     - "${WORKSPACE_VITE_PORT}:5173"
+    #   tty: true
+    #   environment:
+    #     - PHP_IDE_CONFIG=${PHP_IDE_CONFIG}
+    #     - DOCKER_HOST=tcp://docker-in-docker:2376
+    #     - DOCKER_TLS_VERIFY=1
+    #     - DOCKER_TLS_CERTDIR=/certs
+    #     - DOCKER_CERT_PATH=/certs/client
+    #     - CHOKIDAR_USEPOLLING=true
+    #   networks:
+    #     - frontend
+    #     - backend
+    #   links:
+    #     - docker-in-docker
+# ----
+    workspace:
+      restart: always
+      # image: dominhsu/laradock-image-workspace-laravel-ci-cd-github-action
+      build:
+        context: .
+        dockerfile: Dockerfile
+      volumes:
+        # - ${APP_CODE_PATH_HOST}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
+        - docker-in-docker:/certs/client
+        - ./php-worker/supervisord.d:/etc/supervisord.d
+      extra_hosts:
+        - "dockerhost:${DOCKER_HOST_IP}"
+      ports:
+        - "${WORKSPACE_SSH_PORT}:22"
+        - "${WORKSPACE_BROWSERSYNC_HOST_PORT}:3000"
+        - "${WORKSPACE_BROWSERSYNC_UI_HOST_PORT}:3001"
+        - "${WORKSPACE_VUE_CLI_SERVE_HOST_PORT}:8080"
+        - "${WORKSPACE_VUE_CLI_UI_HOST_PORT}:8000"
+        - "${WORKSPACE_ANGULAR_CLI_SERVE_HOST_PORT}:4200"
+        - "${WORKSPACE_VITE_PORT}:5173"
+      tty: true
+      environment:
+        - PHP_IDE_CONFIG=${PHP_IDE_CONFIG}
+        - DOCKER_HOST=tcp://docker-in-docker:2376
+        - DOCKER_TLS_VERIFY=1
+        - DOCKER_TLS_CERTDIR=/certs
+        - DOCKER_CERT_PATH=/certs/client
+        - CHOKIDAR_USEPOLLING=true
+      networks:
+        - frontend
+        - backend
+      links:
+        - docker-in-docker
+### PHP-FPM ##############################################
+    php-fpm:
+      restart: always
+      image: dominhsu/laradock-image-php-fpm
+      volumes:
+        - ./php-fpm/php${PHP_VERSION}.ini:/usr/local/etc/php/php.ini
+        # - ${APP_CODE_PATH_HOST}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
+        - docker-in-docker:/certs/client
+      expose:
+        - "9000"
+      extra_hosts:
+        - "dockerhost:${DOCKER_HOST_IP}"
+      environment:
+        - PHP_IDE_CONFIG=${PHP_IDE_CONFIG}
+        - DOCKER_HOST=tcp://docker-in-docker:2376
+        - DOCKER_TLS_VERIFY=1
+        - DOCKER_TLS_CERTDIR=/certs
+        - DOCKER_CERT_PATH=/certs/client
+        - FAKETIME=${PHP_FPM_FAKETIME}
+        - TZ=${WORKSPACE_TIMEZONE}
+
+      depends_on:
+        - workspace
+      networks:
+        backend:
+          aliases:
+            - php-fpm
+      links:
+        - docker-in-docker
+### Docker-in-Docker ################################################
+    docker-in-docker:
+      restart: always
+      image: docker:20.10-dind
+      environment:
+        DOCKER_TLS_SAN: DNS:docker-in-docker
+      privileged: true
+      volumes:
+        # - ${APP_CODE_PATH_HOST}:${APP_CODE_PATH_CONTAINER}
+        - docker-in-docker:/certs/client
+      expose:
+        - 2375
+      networks:
+        - backend
