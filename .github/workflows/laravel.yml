@@ -100,4 +100,4 @@ jobs:
             echo "docker compose build"
             docker compose -f docker-compose-image-laravel-ci-cd-github-action.yml up -d nginx mysql
             echo "docker compose up"
-            docker compose -f docker-compose-image-laravel-ci-cd-github-action.yml exec workspace bash -c "cp .env-real .env"
+            docker compose -f docker-compose-image-laravel-ci-cd-github-action.yml exec workspace bash -c "cd laravel-ci-cd-github-action && cp .env-real .env"
