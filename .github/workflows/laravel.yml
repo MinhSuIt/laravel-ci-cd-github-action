@@ -87,7 +87,7 @@ jobs:
           port: ${{ secrets.PORT }}
           # thư mục laradock nằm ngang với thư mục code
           script: |
-            cd /var/www/laradock-laravel-crawl-prj 
+            cd /home/laradock-laravel-crawl-prj 
             docker pull dominhsu/laravel-ci-cd-github-action-workspace:"{{ github.sha }}"
             docker compose -f docker-compose-image-laravel-ci-cd-github-action.yml down
             docker compose -f docker-compose-image-laravel-ci-cd-github-action.yml build --no-cache laravel-ci-cd-github-action-workspace
