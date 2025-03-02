@@ -86,6 +86,7 @@ jobs:
           key: ${{ secrets.KEY }}
           port: ${{ secrets.PORT }}
           # thư mục laradock nằm ngang với thư mục code
+          # sed -i~ '/^WORKSPACE_IMAGE=/s/=.*/=dominhsu/laravel-ci-cd-github-action-workspace:${{ github.sha }}/' .env => ~ là tạo file backup
           script: |
             cd /home/laradock-laravel-crawl-prj 
             pwd
@@ -93,7 +94,7 @@ jobs:
             echo "dominhsu/laravel-ci-cd-github-action-workspace:${{ github.sha }}"
             docker compose -f docker-compose-image-laravel-ci-cd-github-action.yml down
             echo "docker compose down"
-            sed -i~ '/^WORKSPACE_IMAGE=/s/=.*/=dominhsu/laravel-ci-cd-github-action-workspace:${{ github.sha }}/' .env
+            sed -i '/^WORKSPACE_IMAGE=/s/=.*/=${{ github.sha }}/' .env
             echo "change version of workspace"
             docker compose -f docker-compose-image-laravel-ci-cd-github-action.yml build --no-cache laravel-ci-cd-github-action-workspace
             echo "docker compose build"
