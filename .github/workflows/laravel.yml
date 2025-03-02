@@ -49,9 +49,10 @@ jobs:
           docker compose --env-file .env.docker up -d workspace
           sleep 10  # Wait for services to be ready
           docker compose --env-file .env.docker ps
+          cp .env-example .env
       - name: Run Tests
         run: |
-          docker compose --env-file .env.docker exec workspace bash -c "cd laravel-ci-cd-github-action; php artisan test"
+          docker compose --env-file .env.docker exec workspace bash -c "cd laravel-ci-cd-github-action;composer install --prefer-dist --no-interaction --no-progress; php artisan test"
 
       - name: Stop Docker Compose
         run: docker compose down
