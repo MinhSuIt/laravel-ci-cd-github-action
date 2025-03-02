@@ -46,15 +46,15 @@ jobs:
 
       - name: Start Docker Compose services
         run: |
-          docker-compose --env-file .env.docker up -d workspace
+          docker compose --env-file .env.docker up -d workspace
           sleep 10  # Wait for services to be ready
 
       - name: Run Tests
         run: |
-          docker-compose --env-file .env.docker exec workspace "cd laravel-ci-cd-github-action && php artisan test"
+          docker compose --env-file .env.docker exec workspace "cd laravel-ci-cd-github-action && php artisan test"
 
       - name: Stop Docker Compose
-        run: docker-compose down
+        run: docker compose down
 
   deploy:
     needs: build-and-test
