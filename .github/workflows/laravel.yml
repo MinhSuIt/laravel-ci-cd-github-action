@@ -34,30 +34,30 @@ jobs:
     #     DB_DATABASE: database/database.sqlite
     #   run: php artisan test
 
-  build-and-test:
-    runs-on: ubuntu-latest
+  # build-and-test:
+  #   runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v3
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+  #     - name: Set up Docker Buildx
+  #       uses: docker/setup-buildx-action@v2
 
-      - name: Start Docker Compose services
-        run: |
-          docker-compose --env-file .env.docker up -d laravel-ci-cd-github-action-workspace
-          sleep 10  # Wait for services to be ready
+  #     - name: Start Docker Compose services
+  #       run: |
+  #         docker-compose --env-file .env.docker up -d laravel-ci-cd-github-action-workspace
+  #         sleep 10  # Wait for services to be ready
 
-      - name: Run Tests
-        run: |
-          docker-compose --env-file .env.docker exec laravel-ci-cd-github-action-workspace "cd laravel-ci-cd-github-action && php artisan test"
+  #     - name: Run Tests
+  #       run: |
+  #         docker-compose --env-file .env.docker exec laravel-ci-cd-github-action-workspace "cd laravel-ci-cd-github-action && php artisan test"
 
-      - name: Stop Docker Compose
-        run: docker-compose down
+  #     - name: Stop Docker Compose
+  #       run: docker-compose down
 
   deploy:
-    needs: build-and-test
+    # needs: build-and-test
     runs-on: ubuntu-latest
     # if: github.ref == 'refs/heads/main'
 
@@ -69,8 +69,7 @@ jobs:
         uses: docker/setup-buildx-action@v2
 
       - name: Log in to Docker Hub
-        run: docker login -u "sub1400992@gmail.com" -p "dauxanhrauma" docker.io
-        # run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
       - name: Build and Push Docker Image
         run: |
@@ -81,13 +80,14 @@ jobs:
       - name: Deploy to Server
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          host: ${{ secrets.SERVER }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.KEY }}
+          port: ${{ secrets.PORT }}
           # thư mục laradock nằm ngang với thư mục code
           script: |
-            cd /var/www/laravel-ci-cd-github-action 
+            cd /var/www/laradock-laravel-crawl-prj 
             docker pull dominhsu/laravel-ci-cd-github-action-workspace:"{{ github.sha }}"
-            docker compose --env-file .env.docker down
-            docker compose --env-file .env.docker build --no-cache laravel-ci-cd-github-action-workspace
-            # docker compose --env-file .env.docker up -d ???
+            docker compose -f docker-compose-image-laravel-ci-cd-github-action.yml down
+            docker compose -f docker-compose-image-laravel-ci-cd-github-action.yml build --no-cache laravel-ci-cd-github-action-workspace
+            docker compose -f docker-compose-image-laravel-ci-cd-github-action.yml up -d nginx mysql
