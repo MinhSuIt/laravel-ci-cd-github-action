@@ -51,7 +51,7 @@ jobs:
           docker compose --env-file .env.docker ps
       - name: Run Tests
         run: |
-          docker compose --env-file .env.docker exec workspace "cd laravel-ci-cd-github-action && php artisan test"
+          docker compose --env-file .env.docker exec workspace bash -c "cd laravel-ci-cd-github-action; php artisan test"
 
       - name: Stop Docker Compose
         run: docker compose down
