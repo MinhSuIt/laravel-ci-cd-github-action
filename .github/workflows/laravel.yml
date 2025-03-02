@@ -54,7 +54,7 @@ jobs:
           docker compose --env-file .env.docker exec workspace bash -c "cd laravel-ci-cd-github-action; cp .env.example .env; composer install --prefer-dist --no-interaction --no-progress; php artisan key:generate; php artisan test"
 
       - name: Stop Docker Compose
-        run: docker compose down
+        run: docker compose --env-file .env.docker down
 
   deploy:
     needs: build-and-test
