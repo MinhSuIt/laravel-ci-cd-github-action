@@ -73,10 +73,10 @@ jobs:
 
       - name: Build and Push Docker Image
         run: |
-          echo "${{ github.sha }}"
-          docker build -t laravel-ci-cd-github-action-workspace:"${{ github.sha }}" .
-          docker tag laravel-ci-cd-github-action-workspace:"{{ github.sha }}" dominhsu/laravel-ci-cd-github-action-workspace:"{{ github.sha }}"
-          docker push dominhsu/laravel-ci-cd-github-action-workspace:"{{ github.sha }}"
+          echo ${{ github.sha }}
+          docker build -t laravel-ci-cd-github-action-workspace:${{ github.sha }} .
+          docker tag laravel-ci-cd-github-action-workspace:{{ github.sha }} dominhsu/laravel-ci-cd-github-action-workspace:{{ github.sha }}
+          docker push dominhsu/laravel-ci-cd-github-action-workspace:{{ github.sha }}
 
       - name: Deploy to Server
         uses: appleboy/ssh-action@master
