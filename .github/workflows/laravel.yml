@@ -96,7 +96,7 @@ jobs:
             echo "docker compose down"
             sed -i '/^WORKSPACE_IMAGE=/s/=.*/=${{ github.sha }}/' .env
             echo "change version of workspace"
-            docker compose -f docker-compose-image-laravel-ci-cd-github-action.yml build --no-cache laravel-ci-cd-github-action-workspace
+            docker compose -f docker-compose-image-laravel-ci-cd-github-action.yml build --no-cache workspace
             echo "docker compose build"
             docker compose -f docker-compose-image-laravel-ci-cd-github-action.yml up -d nginx mysql
             echo "docker compose up"
